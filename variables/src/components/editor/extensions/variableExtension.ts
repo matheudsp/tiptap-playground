@@ -6,22 +6,29 @@ import {
 } from "@tiptap/react";
 import { Variable } from "../components/Variable";
 
-// 2. ATUALIZE O REGEX:
-// O primeiro grupo (externo) captura TUDO o que será substituído ({{...}})
-// O segundo grupo (interno) captura APENAS o caminho (landlord.name)
 const inputRegex = /({{\s*([^{}\s]+)\s*}})$/;
 
 export const VariablesExtension = MentionExtension.extend({
   addNodeView() {
     return ReactNodeViewRenderer(Variable);
   },
+
   parseHTML() {
     return [
       {
         tag: "variable-component",
+        getAttrs: (element) => {
+          if (typeof element === "string") return {};
+
+          const id = element.getAttribute("id");
+          const label = element.getAttribute("label");
+
+          return { id, label };
+        },
       },
     ];
   },
+
   renderHTML({ HTMLAttributes }) {
     return ["variable-component", mergeAttributes(HTMLAttributes)];
   },
@@ -32,10 +39,7 @@ export const VariablesExtension = MentionExtension.extend({
         find: inputRegex,
         type: this.type,
         getAttributes: (match) => {
-          // 'match[1]' é o texto completo: "{{landlord.name}}"
-          // 'match[2]' é o texto interno: "landlord.name"
-          const path = match[2]; // <-- Use o segundo grupo (match[2])
-
+          const path = match[2];
           return { id: path, label: path };
         },
       }),

@@ -6,10 +6,27 @@ import {
 } from "./utils/suggestion";
 import { VariablesExtension } from "./extensions/variableExtension";
 import { VariablesContextProvider } from "./context/VariablesProvider";
-import { useState } from "react";
+import { useState, useMemo } from "react"; // 1. Importe o useMemo
 import { Button } from "../ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { getEditorInitData } from "@/api";
+
+/**
+ * Converte strings do tipo Handlebars (ex: "{{landlord.name}}")
+ * para o formato de tag HTML que a extensão do Tiptap entende.
+ * (ex: <variable-component id="landlord.name" label="landlord.name"></variable-component>)
+ */
+function preprocessContent(content: string | undefined): string {
+  if (!content) {
+    return "";
+  }
+  const regex = /{{\s*([^{}\s]+)\s*}}/g;
+  return content.replace(
+    regex,
+    (match, path) =>
+      `<variable-component id="${path}" label="${path}"></variable-component>`
+  );
+}
 
 export const TiptapEditor = () => {
   const [parseVariables, setParseVariables] = useState(false);
@@ -18,6 +35,12 @@ export const TiptapEditor = () => {
     queryKey: ["editorInitData"],
     queryFn: getEditorInitData,
   });
+
+  // 2. Use o useMemo para processar o conteúdo recebido
+  const processedContent = useMemo(
+    () => preprocessContent(initData?.content),
+    [initData?.content]
+  );
 
   const editor = useEditor(
     {
@@ -32,7 +55,8 @@ export const TiptapEditor = () => {
         }),
       ],
 
-      content: initData?.content ?? "",
+      // 3. Use o conteúdo processado aqui
+      content: processedContent,
       editorProps: {
         attributes: {
           class:
@@ -40,7 +64,8 @@ export const TiptapEditor = () => {
         },
       },
     },
-    [initData?.content]
+    // 4. Atualize a dependência do hook
+    [processedContent]
   );
 
   if (isLoading || !editor) {
@@ -51,6 +76,7 @@ export const TiptapEditor = () => {
     );
   }
 
+  // ... (o resto do seu componente continua igual)
   return (
     <VariablesContextProvider
       parseVariables={parseVariables}

@@ -5,8 +5,12 @@ import { useVariablesContext } from "../../context/useVariablesContext";
 
 function getValueByPath(
   obj: NestedVariableData,
-  path: string
+  path: string | null | undefined
 ): string | undefined {
+  if (!path) {
+    return undefined;
+  }
+
   const keys = path.split(".");
 
   let result: any = obj;
@@ -24,7 +28,7 @@ function getValueByPath(
 export function Variable(props: NodeViewProps) {
   const { parseVariables, values } = useVariablesContext();
   const variableIdPath = props.node.attrs.id;
-  const variableLabel = `{{${props.node.attrs.label}}}`;
+  const variableLabel = `{{${props.node.attrs.label || variableIdPath}}}`; // Fallback
 
   let foundValue: string | undefined;
   let isError = false;
@@ -34,7 +38,6 @@ export function Variable(props: NodeViewProps) {
     foundValue = getValueByPath(values, variableIdPath);
     isError = foundValue === undefined;
   }
-
   let displayText: string;
   if (parseVariables) {
     if (isLoading) {
@@ -48,7 +51,7 @@ export function Variable(props: NodeViewProps) {
     displayText = variableLabel;
   }
 
-  const showErrorStyle = !isLoading && isError;
+  const showErrorStyle = !isLoading && isError && parseVariables;
 
   return (
     <NodeViewWrapper className="inline w-fit">
