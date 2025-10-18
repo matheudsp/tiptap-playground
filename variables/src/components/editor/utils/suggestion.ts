@@ -2,13 +2,15 @@ import { ReactRenderer } from "@tiptap/react";
 import tippy, { Instance } from "tippy.js";
 import { SuggestionOptions, SuggestionProps } from "@tiptap/suggestion";
 import { VariablesList } from "../components/VariablesList";
-import { VariableOption } from "@/types";
+import { VariableOptionNode } from "@/types";
 
-export const suggestionRenderer: Partial<SuggestionOptions<VariableOption>> = {
+export const suggestionRenderer: Partial<
+  SuggestionOptions<VariableOptionNode>
+> = {
   render: () => {
     let component: ReactRenderer<
       ReturnType<NonNullable<SuggestionOptions["render"]>>,
-      SuggestionProps<VariableOption>
+      SuggestionProps<VariableOptionNode>
     >;
     let popup: Instance;
 

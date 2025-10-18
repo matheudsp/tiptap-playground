@@ -1,21 +1,36 @@
-import { VariableOption, type NestedVariableData } from "@/types";
+import { VariableOptionNode, NestedVariableData } from "@/types";
 import { faker } from "@faker-js/faker";
 
-export async function getVariables(): Promise<VariableOption[]> {
-  return new Promise<VariableOption[]>((resolve) =>
+export async function getVariables(): Promise<VariableOptionNode[]> {
+  return new Promise<VariableOptionNode[]>((resolve) =>
     setTimeout(
       () =>
         resolve([
-          { id: "landlord.name", label: "landlord.name" },
-          { id: "landlord.cpfCnpj", label: "landlord.cpfCnpj" },
-          { id: "landlord.email", label: "landlord.email" },
-          { id: "tenant.name", label: "tenant.name" },
-          { id: "tenant.cpfCnpj", label: "tenant.cpfCnpj" },
-          { id: "tenant.email", label: "tenant.email" },
-          { id: "contract.rentAmount", label: "contract.rentAmount" },
           {
-            id: "contract.durationInMonths",
-            label: "contract.durationInMonths",
+            id: "landlord",
+            label: "landlord",
+            children: [
+              { id: "landlord.name", label: "name" },
+              { id: "landlord.cpfCnpj", label: "cpfCnpj" },
+              { id: "landlord.email", label: "email" },
+            ],
+          },
+          {
+            id: "tenant",
+            label: "tenant",
+            children: [
+              { id: "tenant.name", label: "name" },
+              { id: "tenant.cpfCnpj", label: "cpfCnpj" },
+              { id: "tenant.email", label: "email" },
+            ],
+          },
+          {
+            id: "contract",
+            label: "contract",
+            children: [
+              { id: "contract.rentAmount", label: "rentAmount" },
+              { id: "contract.durationInMonths", label: "durationInMonths" },
+            ],
           },
         ]),
       1000

@@ -1,6 +1,7 @@
-export interface VariableOption {
+export interface VariableOptionNode {
   id: string;
   label: string;
+  children?: VariableOptionNode[];
 }
 
 export interface NestedVariableData {

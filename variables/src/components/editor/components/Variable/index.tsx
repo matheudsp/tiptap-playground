@@ -7,20 +7,16 @@ function getValueByPath(
   obj: NestedVariableData,
   path: string
 ): string | undefined {
-  // Converte "landlord.name" para ["landlord", "name"]
-  const keys = path.split(".") as Array<keyof NestedVariableData>;
+  const keys = path.split(".");
 
-  // Use 'reduce' para navegar no objeto de forma segura
-  const result = keys.reduce<NestedVariableData | string | undefined>(
-    (current, key) => {
-      // Verifica se o nível atual é um objeto válido antes de prosseguir
-      if (current && typeof current === "object" && key in current) {
-        return (current as any)[key];
-      }
-      return undefined;
-    },
-    obj
-  );
+  let result: any = obj;
+
+  for (const key of keys) {
+    if (result === null || typeof result !== "object" || !(key in result)) {
+      return undefined; // Caminho inválido ou valor não encontrado
+    }
+    result = result[key];
+  }
 
   return typeof result === "string" ? result : undefined;
 }
