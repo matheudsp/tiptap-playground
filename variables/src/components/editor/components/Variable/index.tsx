@@ -3,7 +3,6 @@ import { NestedVariableData } from "@/types";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { useVariablesContext } from "../../context/useVariablesContext";
 
-// Função auxiliar (sem alterações)
 function getValueByPath(
   obj: NestedVariableData,
   path: string
@@ -25,31 +24,31 @@ function getValueByPath(
 export function Variable(props: NodeViewProps) {
   const { parseVariables, values } = useVariablesContext();
   const variableIdPath = props.node.attrs.id;
-
-  // O label (caminho completo)
   const variableLabel = `{{${props.node.attrs.label}}}`;
 
-  // getDisplayValue agora retorna um objeto
-  const getDisplayValue = (): { text: string; isError: boolean } => {
-    if (parseVariables) {
-      if (!values) return { text: "loading...", isError: false };
+  let foundValue: string | undefined;
+  let isError = false;
+  const isLoading = !values;
 
-      const foundValue = getValueByPath(values, variableIdPath);
+  if (values) {
+    foundValue = getValueByPath(values, variableIdPath);
+    isError = foundValue === undefined;
+  }
 
-      if (foundValue === undefined) {
-        // Erro: Variável não encontrada. Retorna o label e o status de erro.
-        return { text: variableLabel, isError: true };
-      }
-
-      // Sucesso: Retorna o valor encontrado
-      return { text: foundValue, isError: false };
+  let displayText: string;
+  if (parseVariables) {
+    if (isLoading) {
+      displayText = "carregando...";
+    } else if (isError) {
+      displayText = variableLabel;
     } else {
-      // Modo de edição: Retorna o label
-      return { text: variableLabel, isError: false };
+      displayText = foundValue!;
     }
-  };
+  } else {
+    displayText = variableLabel;
+  }
 
-  const display = getDisplayValue();
+  const showErrorStyle = !isLoading && isError;
 
   return (
     <NodeViewWrapper className="inline w-fit">
@@ -57,12 +56,11 @@ export function Variable(props: NodeViewProps) {
         className={cn(
           "rounded bg-neutral-700 px-1 py-0.5 text-custom-primary-100",
 
-          // Aplica classes de erro condicionalmente
-          display.isError &&
+          showErrorStyle &&
             "border border-red-600 text-destructive bg-destructive/20"
         )}
       >
-        {display.text}
+        {displayText}
       </span>
     </NodeViewWrapper>
   );
