@@ -3,6 +3,52 @@ import tippy, { Instance } from "tippy.js";
 import { SuggestionOptions, SuggestionProps } from "@tiptap/suggestion";
 import { VariablesList } from "../components/VariablesList";
 import { VariableOptionNode } from "@/types";
+import type { Range } from "@tiptap/core";
+import type { ResolvedPos } from "@tiptap/pm/model";
+export type SuggestionMatch = {
+  range: Range;
+  query: string;
+  text: string;
+} | null;
+
+export interface Trigger {
+  $position: ResolvedPos;
+}
+
+const triggerRegex = /{{\s*([^{}\s]*)$/gm;
+
+export function customFindSuggestionMatch(config: Trigger): SuggestionMatch {
+  const { $position } = config;
+
+  const text = $position.nodeBefore?.isText && $position.nodeBefore.text;
+
+  if (!text) {
+    return null;
+  }
+
+  const textFrom = $position.pos - text.length;
+  const match = Array.from(text.matchAll(triggerRegex)).pop();
+
+  if (!match || match.input === undefined || match.index === undefined) {
+    return null;
+  }
+
+  const from = textFrom + match.index;
+  const to = from + match[0].length;
+
+  if (from <= $position.pos && to >= $position.pos) {
+    return {
+      range: {
+        from,
+        to,
+      },
+      query: match[1],
+      text: match[0],
+    };
+  }
+
+  return null;
+}
 
 export const suggestionRenderer: Partial<
   SuggestionOptions<VariableOptionNode>

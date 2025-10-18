@@ -12,47 +12,90 @@ const Kbd = ({ children }: { children: React.ReactNode }) => (
   </kbd>
 );
 
+function deriveStateFromQuery(
+  tree: VariableOptionNode[],
+  query: string
+): {
+  navPath: VariableOptionNode[];
+  currentLevelNodes: VariableOptionNode[];
+  searchTerm: string;
+} {
+  if (!tree) {
+    return { navPath: [], currentLevelNodes: [], searchTerm: "" };
+  }
+
+  const parts = query.split(".");
+  const searchTerm = parts.pop() || "";
+  const navPath: VariableOptionNode[] = [];
+  let currentLevelNodes = tree;
+
+  for (const part of parts) {
+    const node = currentLevelNodes.find((n) => n.label === part);
+    if (node && node.children) {
+      navPath.push(node);
+      currentLevelNodes = node.children;
+    } else {
+      // Caminho inválido (ex: "landlord.foo"), reseta
+      return { navPath: [], currentLevelNodes: tree, searchTerm: query };
+    }
+  }
+
+  return { navPath, currentLevelNodes, searchTerm };
+}
+
 export const VariablesList = forwardRef<
   ReturnType<NonNullable<SuggestionOptions["render"]>>,
   SuggestionProps<VariableOptionNode>
->(({ command, query }, ref) => {
+>(({ command, query, editor, range }, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [navPath, setNavPath] = useState<VariableOptionNode[]>([]);
-
   const { data: variablesTree, isLoading } = useQuery({
     queryKey: ["variable-options"],
     queryFn: getVariables,
   });
 
-  const currentLevelNodes =
-    navPath.length > 0 ? navPath[navPath.length - 1].children : variablesTree;
-
-  const items = (currentLevelNodes ?? []).filter((item) =>
-    item.label.toLowerCase().startsWith(query.toLowerCase())
+  const { navPath, currentLevelNodes, searchTerm } = deriveStateFromQuery(
+    variablesTree ?? [],
+    query
   );
 
+  const items = (currentLevelNodes ?? []).filter((item) =>
+    item.label.toLowerCase().startsWith(searchTerm.toLowerCase())
+  );
   useEffect(() => {
     setSelectedIndex(0);
-  }, [items.length, navPath.length]);
+  }, [items.length]);
 
   const navigateBack = () => {
-    if (navPath.length > 0) {
-      setNavPath(navPath.slice(0, -1));
-    }
+    const parts = query.split(".");
+    parts.pop(); // Remove o termo de pesquisa atual
+    parts.pop(); // Remove o último nível do caminho
+
+    const newQuery = parts.length > 0 ? parts.join(".") + "." : "";
+
+    editor.chain().focus().insertContentAt(range, newQuery).run();
   };
 
   const selectItem = (index: number) => {
     const item = items[index];
+    if (!item) return;
 
-    if (item) {
-      if (item.children) {
-        setNavPath([...navPath, item]);
-      } else {
-        command({
-          id: item.id,
-          label: item.id,
-        });
-      }
+    if (item.children) {
+      const newQuery =
+        navPath
+          .map((n) => n.label)
+          .concat(item.label)
+          .join(".") + ".";
+
+      editor
+        .chain()
+        .focus()
+        .insertContentAt(range, "{{" + newQuery)
+        .run();
+    } else {
+      command({
+        id: item.id,
+        label: item.id,
+      });
     }
   };
 
@@ -83,7 +126,11 @@ export const VariablesList = forwardRef<
         return true;
       }
 
-      if (event.key === "Backspace" && navPath.length > 0) {
+      if (
+        event.key === "Backspace" &&
+        searchTerm.length === 0 &&
+        navPath.length > 0
+      ) {
         navigateBack();
         return true;
       }

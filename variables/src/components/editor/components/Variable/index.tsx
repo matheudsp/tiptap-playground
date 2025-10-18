@@ -41,8 +41,10 @@ export function Variable(props: NodeViewProps) {
         return { text: variableLabel, isError: true };
       }
 
+      // Sucesso: Retorna o valor encontrado
       return { text: foundValue, isError: false };
     } else {
+      // Modo de edição: Retorna o label
       return { text: variableLabel, isError: false };
     }
   };
@@ -55,6 +57,7 @@ export function Variable(props: NodeViewProps) {
         className={cn(
           "rounded bg-neutral-700 px-1 py-0.5 text-custom-primary-100",
 
+          // Aplica classes de erro condicionalmente
           display.isError &&
             "border border-red-600 text-destructive bg-destructive/20"
         )}
