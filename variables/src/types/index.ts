@@ -3,8 +3,19 @@ export interface VariableOption {
   label: string;
 }
 
-export interface VariableValue {
-  id: string;
-  value: string;
+export interface NestedVariableData {
+  landlord: {
+    name: string;
+    cpfCnpj: string;
+    email: string;
+  };
+  tenant: {
+    name: string;
+    cpfCnpj: string;
+    email: string;
+  };
+  contract: {
+    rentAmount: string;
+    durationInMonths: string;
+  };
 }
-

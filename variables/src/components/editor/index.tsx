@@ -1,6 +1,6 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { suggestion } from "./utils/suggestion";
+import { suggestionRenderer } from "./utils/suggestion";
 import { VariablesExtension } from "./extensions/variableExtension";
 import { VariablesContextProvider } from "./context/VariablesProvider";
 import { useState } from "react";
@@ -13,7 +13,10 @@ export const TiptapEditor = () => {
     extensions: [
       StarterKit,
       VariablesExtension.configure({
-        suggestion,
+        suggestion: {
+          char: "{{",
+          ...suggestionRenderer,
+        },
       }),
     ],
     content: "<p>Hello World!</p>",
