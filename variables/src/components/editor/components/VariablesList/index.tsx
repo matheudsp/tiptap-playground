@@ -1,11 +1,8 @@
-import { getVariables } from "@/api";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { VariableOptionNode } from "@/types";
-import { useQuery } from "@tanstack/react-query";
 import { SuggestionOptions, SuggestionProps } from "@tiptap/suggestion";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
-
+import { useVariablesContext } from "../../context/useVariablesContext";
 const Kbd = ({ children }: { children: React.ReactNode }) => (
   <kbd className="font-mono rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
     {children}
@@ -48,13 +45,10 @@ export const VariablesList = forwardRef<
   SuggestionProps<VariableOptionNode>
 >(({ command, query, editor, range }, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const { data: variablesTree, isLoading } = useQuery({
-    queryKey: ["variable-options"],
-    queryFn: getVariables,
-  });
+  const { variableOptions } = useVariablesContext();
 
   const { navPath, currentLevelNodes, searchTerm } = deriveStateFromQuery(
-    variablesTree ?? [],
+    variableOptions ?? [],
     query
   );
 
@@ -155,13 +149,7 @@ export const VariablesList = forwardRef<
       )}
 
       <div className="flex flex-col gap-1">
-        {isLoading ? (
-          <>
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </>
-        ) : (
+        {items.length > 0 ? (
           items.map((item, index) => (
             <button
               className={cn(
@@ -175,6 +163,10 @@ export const VariablesList = forwardRef<
               {item.children && <span className="opacity-50 ml-2">&gt;</span>}
             </button>
           ))
+        ) : (
+          <div className="text-sm p-2 text-muted-foreground">
+            Sem resultados.
+          </div>
         )}
       </div>
 

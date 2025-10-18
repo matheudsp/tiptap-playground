@@ -1,5 +1,53 @@
-import { VariableOptionNode, NestedVariableData } from "@/types";
+import {
+  VariableOptionNode,
+  NestedVariableData,
+  EditorInitData,
+} from "@/types";
 import { faker } from "@faker-js/faker";
+
+export async function getEditorInitData(): Promise<EditorInitData> {
+  const variablesTree = [
+    {
+      id: "landlord",
+      label: "landlord",
+      children: [
+        { id: "landlord.name", label: "name" },
+        { id: "landlord.cpfCnpj", label: "cpfCnpj" },
+        { id: "landlord.email", label: "email" },
+      ],
+    },
+    {
+      id: "tenant",
+      label: "tenant",
+      children: [
+        { id: "tenant.name", label: "name" },
+        { id: "tenant.cpfCnpj", label: "cpfCnpj" },
+        { id: "tenant.email", label: "email" },
+      ],
+    },
+    {
+      id: "contract",
+      label: "contract",
+      children: [
+        { id: "contract.rentAmount", label: "rentAmount" },
+        { id: "contract.durationInMonths", label: "durationInMonths" },
+      ],
+    },
+  ];
+
+  return new Promise<EditorInitData>((resolve) =>
+    setTimeout(
+      () =>
+        resolve({
+          // O conteúdo personalizado que você pediu
+          content:
+            "<p>Olá, {{landlord.name}}! Este é o seu contrato.</p><p>O locatário é {{tenant.name}}.</p>",
+          variables: variablesTree,
+        }),
+      1000
+    )
+  );
+}
 
 export async function getVariables(): Promise<VariableOptionNode[]> {
   return new Promise<VariableOptionNode[]>((resolve) =>

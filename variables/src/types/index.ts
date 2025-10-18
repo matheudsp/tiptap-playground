@@ -20,3 +20,8 @@ export interface NestedVariableData {
     durationInMonths: string;
   };
 }
+
+export interface EditorInitData {
+  content: string;
+  variables: VariableOptionNode[];
+}
