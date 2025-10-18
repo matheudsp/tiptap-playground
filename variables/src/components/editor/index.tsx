@@ -1,4 +1,4 @@
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, Editor } from "@tiptap/react"; // 1. Importe o tipo 'Editor'
 import StarterKit from "@tiptap/starter-kit";
 import {
   suggestionRenderer,
@@ -6,16 +6,11 @@ import {
 } from "./utils/suggestion";
 import { VariablesExtension } from "./extensions/variableExtension";
 import { VariablesContextProvider } from "./context/VariablesProvider";
-import { useState, useMemo } from "react"; // 1. Importe o useMemo
+import { useState, useMemo } from "react";
 import { Button } from "../ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { getEditorInitData } from "@/api";
 
-/**
- * Converte strings do tipo Handlebars (ex: "{{landlord.name}}")
- * para o formato de tag HTML que a extensão do Tiptap entende.
- * (ex: <variable-component id="landlord.name" label="landlord.name"></variable-component>)
- */
 function preprocessContent(content: string | undefined): string {
   if (!content) {
     return "";
@@ -28,6 +23,36 @@ function preprocessContent(content: string | undefined): string {
   );
 }
 
+/**
+ * Converte o HTML serializado do Tiptap (com <variable-component...>)
+ * de volta para o formato Handlebars (com {{...}}) que o backend espera.
+ */
+function serializeContentForBackend(html: string): string {
+  const regex =
+    /<variable-component[^>]*data-id="([^"]+)"[^>]*><\/variable-component>/g;
+
+  return html.replace(regex, (match, id) => {
+    return `{{${id}}}`;
+  });
+}
+
+/**
+ * Pega o conteúdo atual do editor, serializa para o formato Handlebars
+ * e inicia o download de um arquivo .html.
+ */
+function exportHtmlFile(editor: Editor) {
+  const rawHtml = editor.getHTML();
+  const contentForBackend = serializeContentForBackend(rawHtml);
+  const blob = new Blob([contentForBackend], { type: "text/html" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "template.html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
 export const TiptapEditor = () => {
   const [parseVariables, setParseVariables] = useState(false);
 
@@ -36,7 +61,6 @@ export const TiptapEditor = () => {
     queryFn: getEditorInitData,
   });
 
-  // 2. Use o useMemo para processar o conteúdo recebido
   const processedContent = useMemo(
     () => preprocessContent(initData?.content),
     [initData?.content]
@@ -54,8 +78,6 @@ export const TiptapEditor = () => {
           },
         }),
       ],
-
-      // 3. Use o conteúdo processado aqui
       content: processedContent,
       editorProps: {
         attributes: {
@@ -64,7 +86,6 @@ export const TiptapEditor = () => {
         },
       },
     },
-    // 4. Atualize a dependência do hook
     [processedContent]
   );
 
@@ -76,18 +97,23 @@ export const TiptapEditor = () => {
     );
   }
 
-  // ... (o resto do seu componente continua igual)
   return (
     <VariablesContextProvider
       parseVariables={parseVariables}
       variableOptions={initData?.variables}
     >
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full h-full flex flex-col items-center justify-center">
         <EditorContent editor={editor} />
 
-        <Button onClick={() => setParseVariables(!parseVariables)}>
-          Toggle preview
-        </Button>
+        <div className="flex gap-2 mt-4">
+          <Button onClick={() => setParseVariables(!parseVariables)}>
+            Toggle preview
+          </Button>
+
+          <Button variant="outline" onClick={() => exportHtmlFile(editor)}>
+            Exportar HTML
+          </Button>
+        </div>
       </div>
     </VariablesContextProvider>
   );

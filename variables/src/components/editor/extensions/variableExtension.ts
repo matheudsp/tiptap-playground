@@ -32,7 +32,9 @@ export const VariablesExtension = MentionExtension.extend({
   renderHTML({ HTMLAttributes }) {
     return ["variable-component", mergeAttributes(HTMLAttributes)];
   },
-
+  renderText({ node }) {
+    return `{{${node.attrs.id}}}`;
+  },
   addInputRules() {
     return [
       nodeInputRule({

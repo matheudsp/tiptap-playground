@@ -41,7 +41,11 @@ export async function getEditorInitData(): Promise<EditorInitData> {
         resolve({
           // O conteúdo personalizado que você pediu
           content:
-            "<p>Olá, {{landlord.name}}! Este é o seu contrato.</p><p>O locatário é {{tenant.name}}.</p>",
+            "<p>Olá, {{landlord.name}}! Este é o seu contrato.</p>" +
+            "<p>O locatário é {{tenant.name}}, portador do CPF/CNPJ {{tenant.cpfCnpj}}.</p>" +
+            "<p>O valor do aluguel é de {{contract.rentAmount}} mensais.</p>" +
+            "<p>A duração total do contrato é de {{contract.durationInMonths}} meses.</p>" +
+            "<p>Enviaremos a cópia final para os e-mails: {{landlord.email}} e {{tenant.email}}.</p>",
           variables: variablesTree,
         }),
       1000

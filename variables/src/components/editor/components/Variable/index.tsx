@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { NestedVariableData } from "@/types";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { useVariablesContext } from "../../context/useVariablesContext";
-
+import { Skeleton } from "@/components/ui/skeleton";
 function getValueByPath(
   obj: NestedVariableData,
   path: string | null | undefined
@@ -41,7 +41,6 @@ export function Variable(props: NodeViewProps) {
   let displayText: string;
   if (parseVariables) {
     if (isLoading) {
-      displayText = "carregando...";
     } else if (isError) {
       displayText = variableLabel;
     } else {
@@ -57,13 +56,17 @@ export function Variable(props: NodeViewProps) {
     <NodeViewWrapper className="inline w-fit">
       <span
         className={cn(
-          "rounded bg-neutral-700 px-1 py-0.5 text-custom-primary-100",
+          "rounded bg-neutral-700 px-1 py-0.5 text-custom-primary-100 ",
 
           showErrorStyle &&
             "border border-red-600 text-destructive bg-destructive/20"
         )}
       >
-        {displayText}
+        {parseVariables && isLoading ? (
+          <Skeleton className="inline-block w-24 h-5 align-middle" />
+        ) : (
+          displayText!
+        )}
       </span>
     </NodeViewWrapper>
   );
